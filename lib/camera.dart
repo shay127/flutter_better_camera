@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -158,7 +159,15 @@ class CameraPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return controller.value.isInitialized
-        ? Texture(textureId: controller._textureId)
+        ? RotatedBox(
+            quarterTurns: Platform.isAndroid ? 0 : 1,
+            child: AspectRatio(
+              aspectRatio: Platform.isAndroid
+                  ? 1 / controller.value.aspectRatio
+                  : controller.value.aspectRatio,
+              child: Texture(textureId: controller._textureId),
+            ),
+          )
         : Container();
   }
 }
@@ -179,14 +188,13 @@ class CameraValue {
 
   const CameraValue.uninitialized()
       : this(
-      isInitialized: false,
-      isRecordingVideo: false,
-      isTakingPicture: false,
-      isStreamingImages: false,
-      isRecordingPaused: false,
-      autoFocusEnabled: true,
-      flashMode: FlashMode.off
-  );
+            isInitialized: false,
+            isRecordingVideo: false,
+            isTakingPicture: false,
+            isStreamingImages: false,
+            isRecordingPaused: false,
+            autoFocusEnabled: true,
+            flashMode: FlashMode.off);
 
   /// True after [CameraController.initialize] has completed successfully.
   final bool isInitialized;
@@ -199,7 +207,6 @@ class CameraValue {
 
   /// FlashMode
   final FlashMode flashMode;
-
 
   /// True when the camera is recording (not the same as previewing).
   final bool isRecordingVideo;
@@ -222,21 +229,20 @@ class CameraValue {
   /// Convenience getter for `previewSize.height / previewSize.width`.
   ///
   /// Can only be called when [initialize] is done.
-  double get aspectRatio => previewSize.height / previewSize.width;
+  double get aspectRatio => previewSize.width / previewSize.height;
 
   bool get hasError => errorDescription != null;
 
-  CameraValue copyWith({
-    bool isInitialized,
-    bool isRecordingVideo,
-    bool isTakingPicture,
-    bool isStreamingImages,
-    String errorDescription,
-    Size previewSize,
-    bool isRecordingPaused,
-    bool autoFocusEnabled,
-    FlashMode flashMode
-  }) {
+  CameraValue copyWith(
+      {bool isInitialized,
+      bool isRecordingVideo,
+      bool isTakingPicture,
+      bool isStreamingImages,
+      String errorDescription,
+      Size previewSize,
+      bool isRecordingPaused,
+      bool autoFocusEnabled,
+      FlashMode flashMode}) {
     return CameraValue(
       isInitialized: isInitialized ?? this.isInitialized,
       errorDescription: errorDescription,
@@ -270,13 +276,12 @@ class CameraValue {
 ///
 /// To show the camera preview on the screen use a [CameraPreview] widget.
 class CameraController extends ValueNotifier<CameraValue> {
-  CameraController(this.description,
-      this.resolutionPreset, {
-        this.enableAudio = true,
-        this.autoFocusEnabled = true,
-        this.flashMode = FlashMode.off,
-        this.enableAutoExposure = true
-      }) : super(const CameraValue.uninitialized());
+  CameraController(this.description, this.resolutionPreset,
+      {this.enableAudio = true,
+      this.autoFocusEnabled = true,
+      this.flashMode = FlashMode.off,
+      this.enableAutoExposure = true})
+      : super(const CameraValue.uninitialized());
 
   final CameraDescription description;
   final ResolutionPreset resolutionPreset;
@@ -305,7 +310,7 @@ class CameraController extends ValueNotifier<CameraValue> {
     try {
       _creatingCompleter = Completer<void>();
       final Map<String, dynamic> reply =
-      await _channel.invokeMapMethod<String, dynamic>(
+          await _channel.invokeMapMethod<String, dynamic>(
         'initialize',
         <String, dynamic>{
           'cameraName': description.name,
@@ -327,7 +332,7 @@ class CameraController extends ValueNotifier<CameraValue> {
     } on PlatformException catch (e) {
       throw CameraException(e.code, e.message);
     }
-    
+
     _eventSubscription =
         EventChannel('flutter.io/cameraPlugin/cameraEvents$_textureId')
             .receiveBroadcastStream()
@@ -369,7 +374,6 @@ class CameraController extends ValueNotifier<CameraValue> {
         break;
     }
   }
-
 
   /// Captures an image and saves it to [path].
   ///
@@ -446,13 +450,13 @@ class CameraController extends ValueNotifier<CameraValue> {
       throw CameraException(e.code, e.message);
     }
     const EventChannel cameraEventChannel =
-    EventChannel('plugins.flutter.io/camera/imageStream');
+        EventChannel('plugins.flutter.io/camera/imageStream');
     _imageStreamSubscription =
         cameraEventChannel.receiveBroadcastStream().listen(
-              (dynamic imageData) {
-            onAvailable(CameraImage._fromPlatformData(imageData));
-          },
-        );
+      (dynamic imageData) {
+        onAvailable(CameraImage._fromPlatformData(imageData));
+      },
+    );
   }
 
   /// Stop streaming images from platform camera.
@@ -693,6 +697,4 @@ class CameraController extends ValueNotifier<CameraValue> {
       await _eventSubscription?.cancel();
     }
   }
-
-
 }
