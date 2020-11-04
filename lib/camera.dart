@@ -159,15 +159,25 @@ class CameraPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return controller.value.isInitialized
-        ? RotatedBox(
-            quarterTurns: Platform.isAndroid ? 0 : 1,
-            child: AspectRatio(
-              aspectRatio: Platform.isAndroid
-                  ? 1 / controller.value.aspectRatio
-                  : controller.value.aspectRatio,
-              child: Texture(textureId: controller._textureId),
-            ),
-          )
+        ? OrientationBuilder(builder: (context2, orientation) {
+            int quarterTurns = 0;
+            if (Platform.isIOS) {
+              if (orientation == Orientation.portrait) {
+                quarterTurns = 1;
+              } else if (orientation == Orientation.landscape) {
+                quarterTurns = 2;
+              }
+            }
+            return RotatedBox(
+              quarterTurns: quarterTurns,
+              child: AspectRatio(
+                aspectRatio: Platform.isAndroid
+                    ? 1 / controller.value.aspectRatio
+                    : controller.value.aspectRatio,
+                child: Texture(textureId: controller._textureId),
+              ),
+            );
+          })
         : Container();
   }
 }
