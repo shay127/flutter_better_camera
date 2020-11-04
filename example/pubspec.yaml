@@ -7,8 +7,9 @@ dependencies:
   path_provider: ^0.5.0
   flutter:
     sdk: flutter
-  video_player:
-    path: ../../flutter_video_player/video_player/video_player
+  flutter_video_player:
+    git:
+      url: https://github.com/shay127/flutter_video_player
   e2e: "^0.2.0"
 
 dev_dependencies:
