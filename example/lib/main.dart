@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:flutter_better_camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:video_player/video_player.dart';
+import 'package:flutter_video_player/video_player.dart';
 
 class CameraExampleHome extends StatefulWidget {
   @override

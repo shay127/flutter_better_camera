@@ -6,7 +6,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_better_camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:video_player/video_player.dart';
+import 'package:flutter_video_player/video_player.dart';
 import 'package:e2e/e2e.dart';
 
 void main() {
